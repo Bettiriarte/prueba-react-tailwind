@@ -1,68 +1,94 @@
-import CrossIcon from "./componets/icons/CrossIcon";
-import MoonIcon from "./componets/icons/MoonIcon";
+import { useEffect, useState } from "react";
+import Header from "./components/Header";
+import TodoComputed from "./components/TodoComputed";
+import TodoCreate from "./components/TodoCreate";
+import TodoFilter from "./components/TodoFilter";
+import TodoList from "./components/TodoList";
+
+// const initialStateTodos = [
+//   { id: 1, title: "Hacer ejercicio", completed: true },
+//   { id: 2, title: "Terminar Proyecto de la U", completed: false },
+//   { id: 3, title: "Limpiar y organizar la casa", completed: false },
+//   { id: 4, title: "Lavar la ropa", completed: false },
+//   { id: 5, title: "Ir a la peluqueria", completed: false }
+// ]
+
+const initialStateTodos = JSON.parse(localStorage.getItem("todos")) || [];
 
 const App = () => {
+
+  const [todos, setTodos] = useState(initialStateTodos);
+
+  useEffect(() => {
+    localStorage.setItem("todos", JSON.stringify(todos));
+  }, [todos]);
+
+  const createTodo = (title) => {
+    const newTodo = {
+      id: Date.now(),
+      title,
+      completed: false
+    }
+    setTodos([...todos, newTodo]);
+  }
+
+  const UpdateTodo = (id) => {
+    setTodos(todos.map(
+      todo => todo.id === id ? { ...todo, completed: !todo.completed } : todo))
+  }
+
+  const RemoveTodo = (id) => {
+    setTodos(todos.filter((todo) => todo.id !== id))
+  }
+
+  const ComputedTodo = todos.filter((todo) => !todo.completed).length;
+
+  const ClearCompleted = () => {
+    setTodos(todos.filter((todo) => !todo.completed))
+  }
+
+  const [filter, setFilter] = useState("All")
+  const ChangeFilter = (filter) => setFilter(filter)
+  const FilterTodo = () => {
+    switch (filter) {
+      case "All":
+        return todos;
+      case "Active":
+        return todos.filter((todo) => !todo.completed);
+      case "Completed":
+        return todos.filter((todo) => todo.completed);
+      default:
+        return todos;
+    }
+  }
   return (
-    <div className="bg-[url('./assets/images/bg-mobile-light.jpg')] bg-no-repeat bg-contain bg-gray-300 min-h-screen">
-      <header className="container mx-auto pt-8 px-4">
-        <div className="flex justify-between">
-          <h1 className="uppercase text-white text-3xl font-bold tracking-[0.3em]">Todo</h1>
-          <button>
-            <MoonIcon/>
-          </button>
-        </div>
-        <form className="bg-white rounded-md overflow-hidden py-4 flex gap-4 items-center px-4 mt-8">
-          <span className="rounded-full border-2 inline-block h-5 w-5 "></span>
-          <input
-            type="text"
-            placeholder="Create a new todo.."
-            className="w-full text-gray-400 outline-none"
-          />
-        </form>
-      </header>
-      <main className="container mx-auto px-4 mt-8">
-        <div className="bg-white rounded-md [&>article]:p-4">
+    <div className="bg-[url('./assets/images/bg-mobile-light.jpg')] dark:bg-[url('./assets/images/bg-mobile-dark.jpg')] bg-no-repeat bg-contain bg-gray-300 min-h-screen dark:bg-[#171721] transition-all duration-1000 md:bg-[url('./assets/images/bg-desktop-light.jpg')] md:dark:bg-[url('./assets/images/bg-desktop-dark.jpg')]">
 
-          <article className="flex gap-4 ml-auto border-b border-b-gray-300">
-            <button className="rounded-full border-2 inline-block h-5 w-5"></button>
-            <p className="text-gray-400 grow">complete online JavaScript course</p>
-            <button className="flex none">
-              <CrossIcon />
-            </button>
-          </article>
+      <Header />
 
-          <article className="flex gap-4 ml-auto border-b border-b-gray-300">
-            <button className="rounded-full border-2 inline-block h-5 w-5 "></button>
-            <p className="grow">complete online JavaScript course</p>
-            <button className="flex none">
-              <CrossIcon />
-            </button>
-          </article>
+      <main className="container mx-auto px-4 mt-8 md:max-w-xl">
+        <TodoCreate
+          create={createTodo}
+        />
 
-          <article className="flex gap-4 ml-auto border-b border-b-gray-300">
-            <button className="rounded-full border-2 inline-block h-5 w-5 "></button>
-            <p className="grow">complete online JavaScript course</p>
-            <button className="flex none">
-              <CrossIcon />
-            </button>
-          </article>
+        <TodoList
+          todos={FilterTodo()}
+          update={UpdateTodo}
+          delete1={RemoveTodo}
+        />
 
-          <section className=" px-4 py-4 flex gap-4 justify-between">
-            <span className="text-gray-400"> 5 item left</span>
-            <button className="text-gray-400">Clear Completed</button>
-          </section>
-        </div>
+        <TodoComputed
+          computed={ComputedTodo}
+          clear={ClearCompleted}
+        />
 
+        <TodoFilter
+          changeFilter={ChangeFilter}
+          filter={filter}
+        />
       </main>
-      <section className="container mx-auto px-4 text-center">
-        <div className="mt-8 bg-white rounded-md p-4 flex gap-4 justify-center text-gray-400">
-        <button className="text-blue-700">All </button>
-          <button className="hover:text-blue-700">Active </button>
-          <button className="hover:text-blue-700">Completed </button>
-        </div>
-      </section>
 
-      <p className="text-center text-gray-400 mt-8"> Drag and drop to reorder list</p>
+      <footer className="text-center text-gray-400 mt-8"> Drag and drop to reorder list</footer>
 
     </div>
   )
