@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { DragDropContext } from "@hello-pangea/dnd";
 import Header from "./components/Header";
 import TodoComputed from "./components/TodoComputed";
 import TodoCreate from "./components/TodoCreate";
@@ -15,6 +16,12 @@ import TodoList from "./components/TodoList";
 
 const initialStateTodos = JSON.parse(localStorage.getItem("todos")) || [];
 
+const reorder = (list, startIndex, endIndex) => {
+  const result = [...list]
+  const [removed] = result.splice(startIndex, 1)
+  result.splice(endIndex, 0, removed)
+  return result
+}
 const App = () => {
 
   const [todos, setTodos] = useState(initialStateTodos);
@@ -61,6 +68,20 @@ const App = () => {
         return todos;
     }
   }
+
+  const handleDragEnd = (result) => {
+    const { destination, source } = result;
+    if (!destination) return;
+    if (
+      source.index === destination.index &&
+      source.droppableId === destination.droppableId
+    )
+      return;
+    setTodos((prevTask) =>
+      reorder(prevTask, source.index, destination.index)
+    )
+  }
+
   return (
     <div className="bg-[url('./assets/images/bg-mobile-light.jpg')] dark:bg-[url('./assets/images/bg-mobile-dark.jpg')] bg-no-repeat bg-contain bg-gray-300 min-h-screen dark:bg-[#171721] transition-all duration-1000 md:bg-[url('./assets/images/bg-desktop-light.jpg')] md:dark:bg-[url('./assets/images/bg-desktop-dark.jpg')]">
 
@@ -71,11 +92,13 @@ const App = () => {
           create={createTodo}
         />
 
-        <TodoList
-          todos={FilterTodo()}
-          update={UpdateTodo}
-          delete1={RemoveTodo}
-        />
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <TodoList
+            todos={FilterTodo()}
+            update={UpdateTodo}
+            delete1={RemoveTodo}
+          />
+        </DragDropContext>
 
         <TodoComputed
           computed={ComputedTodo}
